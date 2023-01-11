@@ -64,6 +64,8 @@ data WriteFormat =
     -- ^ <https://github.com/VerifiableRobotics/slugs/blob/master/doc/input_formats.md#structuredslugs>
   | SLUGSIN
     -- ^ <https://github.com/VerifiableRobotics/slugs/blob/master/doc/input_formats.md#slugsin>
+  | SPECTRA
+    -- ^ <http://smlab.cs.tau.ac.il/syntech/spectra/index.html>
   | PSL
     -- ^ <https://en.wikipedia.org/wiki/Property_Specification_Language>
   | SMV
@@ -96,6 +98,7 @@ instance Show WriteFormat where
     BASIC       -> "Basic"
     SLUGS       -> "Slugs"
     SLUGSIN     -> "SlugsIn"
+    SPECTRA     -> "Spectra"
     FULL        -> "Full"
     PSL         -> "Psl"
     SMV         -> "SMV"
@@ -120,6 +123,7 @@ instance Convertible WriteFormat String where
     BASIC       -> "basic"
     SLUGS       -> "slugs"
     SLUGSIN     -> "slugsin"
+    SPECTRA     -> "spectra"
     FULL        -> "full"
     PSL         -> "psl"
     SMV         -> "smv"
@@ -144,6 +148,7 @@ instance Convertible String WriteFormat where
     "basic"        -> return BASIC
     "slugs"        -> return SLUGS
     "slugsin"      -> return SLUGSIN
+    "spectra"      -> return SPECTRA
     "full"         -> return FULL
     "psl"          -> return PSL
     "smv"          -> return SMV
