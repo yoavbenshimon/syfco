@@ -51,28 +51,28 @@ writeFormat c s =
 
       (iv,ov) <- signals c s
 
-      return $ "Spec " ++ maybe "Translated_Specification" show (outputFile c) --how to read file name?
+      return $ "spec " ++ maybe "Translated_Specification" (init . tail . show) (outputFile c) --extracting output name
+        ++ "\n\n"
+        ++ unlines (map (\y -> "env boolean " ++ y ++ ";") iv) --inputs (env)
         ++ "\n"
-        ++ unlines (map ("env boolean " ++) iv) --inputs (env)
-        ++ "\n"
-        ++ unlines (map ("sys boolean " ++) ov) --outputs (sys)
+        ++ unlines (map (\y -> "sys boolean " ++ y ++ ";") ov) --outputs (sys)
         ++ (if null es then "" else
-             "\n" ++ unlines (map (("asm ini " ++). prFormula) es)) --initial env
+            "\n" ++ unlines (map (\y -> "asm ini " ++ prFormula y ++ ";") es)) --initial env
         ++ (if null ss then "" else
-             "\n" ++ unlines (map (("sys ini " ++). prFormula) ss)) --initial sys
+             "\n" ++ unlines (map (\y -> "sys ini " ++ prFormula y ++ ";") ss)) --initial sys
         ++ (if null rs then "" else
-              "\n" ++ unlines (map (("asm always " ++). prFormula) rs)) --saftey assumptions (env)
+              "\n" ++ unlines (map (\y -> "asm always " ++ prFormula y ++ ";") rs)) --saftey assumptions (env)
         ++ (if null is then "" else
-              "\n" ++ unlines (map (("gar always " ++). prFormula) is)) --saftey guarantees (sys)
+              "\n" ++ unlines (map (\y -> "gar always " ++ prFormula y ++ ";") is)) --saftey guarantees (sys)
         ++ (if null le then "" else
-              "\n" ++ unlines (map (("asm alwEv " ++). prFormula) le)) --liveness assumptions (env)
+              "\n" ++ unlines (map (\y -> "asm alwEv " ++ prFormula y ++ ";") le)) --liveness assumptions (env)
         ++ (if null ls then "" else
-             "\n" ++ unlines (map (("gar alwEv " ++). prFormula) ls)) --liveness guarantees (sys)
+             "\n" ++ unlines (map (\y -> "gar alwEv " ++ prFormula y ++ ";") ls)) --liveness guarantees (sys)
 
     prFormula fml = case fml of
-      TTrue                 -> " true "
-      FFalse                -> " false "
-      Atomic x              -> " " ++ show x ++ " "
+      TTrue                 -> "true"
+      FFalse                -> "false"
+      Atomic x              -> show x
       Not x                 -> "!(" ++ prFormula x ++ ")"
       Next x                -> "next(" ++ prFormula' x ++ ")"
       And []                -> prFormula TTrue
@@ -89,14 +89,14 @@ writeFormat c s =
 
 
       where prFormula' f = case f of
-              TTrue                 -> " true "
-              FFalse                -> " false "
-              Atomic x              -> " " ++ show x ++ " "
+              TTrue                 -> "true"
+              FFalse                -> "false"
+              Atomic x              -> show x
               Not x                 -> "!(" ++ prFormula' x ++ ")"
               Next {}               -> assert False undefined
               And []                -> prFormula' TTrue
               And [x]               -> prFormula' x
-              And (x:xr)            -> "(" ++ prFormula' x ++ ")" ++ 
+              And (x:xr)            -> "(" ++ prFormula' x ++ ")" ++
                                        concatMap (\y -> " & (" ++ prFormula' y ++ ")") xr
               Or []                 -> prFormula' FFalse
               Or [x]                -> prFormula' x
