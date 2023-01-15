@@ -1,15 +1,14 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Writer.Formats.SlugsIn
+-- Module      :  Writer.Formats.Spectra
 -- License     :  MIT (see the LICENSE file)
--- Maintainer  :  Ioannis Filippidis (jfilippidis@gmail.com)
---                Felix Klein (klein@react.uni-saarland.de)
+-- Maintainer  :  Yoav Ben Shimon (yoavbenshimon@gmail.com)
 --
--- Translates GR(1) specification to SlugsIn syntax.
+-- Translates GR(1) specification to Spectra syntax.
 --
 -----------------------------------------------------------------------------
 
-module Writer.Formats.SlugsIn where
+module Writer.Formats.Spectra where
 
 -----------------------------------------------------------------------------
 
@@ -25,7 +24,7 @@ import Control.Exception
 
 -----------------------------------------------------------------------------
 
--- | SlugsIn format writer.
+-- | Spectra format writer.
 
 writeFormat
   :: Configuration -> Specification -> Either Error String
@@ -34,13 +33,13 @@ writeFormat c s =
   case detectGR c s of
     Left v -> case v of
       Left err -> Left err
-      Right _  -> errNoGR1 "not in GR(1)" "slugsin"
+      Right _  -> errNoGR1 "not in GR(1)" "Spectra"
     Right gr
-      | level gr > 1 -> errNoGR1 ("in GR(" ++ show (level gr) ++ ")") "slugsin"
-      | otherwise    -> printSlugs gr
+      | level gr > 1 -> errNoGR1 ("in GR(" ++ show (level gr) ++ ")") "Spectra"
+      | otherwise    -> printSpectra gr
 
   where
-    printSlugs gr = do
+    printSpectra gr = do
       let
         es = initEnv gr
         ss = initSys gr
@@ -52,76 +51,59 @@ writeFormat c s =
 
       (iv,ov) <- signals c s
 
-      return $ "[INPUT]"
-        ++ "\n" ++ unlines iv
-        ++ "\n" ++ "[OUTPUT]"
-        ++ "\n" ++ unlines ov
+      return $ "Spec " ++ maybe "Translated_Specification" show (outputFile c) --how to read file name?
+        ++ "\n"
+        ++ unlines (map ("env boolean " ++) iv) --inputs (env)
+        ++ "\n"
+        ++ unlines (map ("sys boolean " ++) ov) --outputs (sys)
         ++ (if null es then "" else
-             "\n" ++ "[ENV_INIT]" ++
-             "\n" ++ unlines (map prFormula es))
+             "\n" ++ unlines (map (("asm ini " ++). prFormula) es)) --initial env
         ++ (if null ss then "" else
-             "\n" ++ "[SYS_INIT]" ++
-             "\n" ++ unlines (map prFormula ss))
+             "\n" ++ unlines (map (("sys ini " ++). prFormula) ss)) --initial sys
         ++ (if null rs then "" else
-              "\n" ++ "[ENV_TRANS]" ++
-              "\n" ++ unlines (map prFormula rs))
+              "\n" ++ unlines (map (("asm always " ++). prFormula) rs)) --saftey assumptions (env)
         ++ (if null is then "" else
-              "\n" ++ "[SYS_TRANS]" ++
-              "\n" ++ unlines (map prFormula is))
+              "\n" ++ unlines (map (("gar always " ++). prFormula) is)) --saftey guarantees (sys)
         ++ (if null le then "" else
-              "\n" ++ "[ENV_LIVENESS]" ++
-              "\n" ++ unlines (map prFormula le))
+              "\n" ++ unlines (map (("asm alwEv " ++). prFormula) le)) --liveness assumptions (env)
         ++ (if null ls then "" else
-             "\n" ++ "[SYS_LIVENESS]" ++
-             "\n" ++ unlines (map prFormula ls))
+             "\n" ++ unlines (map (("gar alwEv " ++). prFormula) ls)) --liveness guarantees (sys)
 
     prFormula fml = case fml of
-      TTrue                 -> " 1 "
-      FFalse                -> " 0 "
+      TTrue                 -> " true "
+      FFalse                -> " false "
       Atomic x              -> " " ++ show x ++ " "
-      Not x                 -> "! " ++ prFormula x
-      Next x                -> prFormula' x
+      Not x                 -> "!(" ++ prFormula x ++ ")"
+      Next x                -> "next(" ++ prFormula' x ++ ")"
       And []                -> prFormula TTrue
       And [x]               -> prFormula x
-      And (x:xr)            -> concatMap (\_ -> " & ") xr ++
-                               prFormula x ++
-                               concatMap (\y -> prFormula y) xr
+      And (x:xr)            -> "(" ++ prFormula x ++ ")" ++
+                               concatMap (\y -> " & (" ++ prFormula y ++ ")") xr
       Or []                 -> prFormula FFalse
       Or [x]                -> prFormula x
-      Or (x:xr)             -> concatMap (\_ -> " | ") xr ++
-                               prFormula x ++
-                               concatMap (\y -> prFormula y) xr
-      Implies x y           -> " | ! " ++
-                               prFormula x ++
-                               prFormula y
-      Equiv x y             -> " ! ^ " ++
-                               prFormula x ++
-                               prFormula y
+      Or (x:xr)             -> "(" ++ prFormula x ++ ")" ++
+                               concatMap (\y -> " | (" ++ prFormula y ++ ")") xr
+      Implies x y           -> "(" ++ prFormula x ++ ") -> (" ++ prFormula y ++ ")"
+      Equiv x y             -> "(" ++ prFormula x ++ ") <-> (" ++ prFormula y ++ ")"
       _                     -> assert False undefined
 
 
       where prFormula' f = case f of
-              TTrue                 -> " 1 "
-              FFalse                -> " 0 "
-              Atomic x              -> " " ++ show x ++ "' "
-              Not x                 -> "! " ++ prFormula' x
+              TTrue                 -> " true "
+              FFalse                -> " false "
+              Atomic x              -> " " ++ show x ++ " "
+              Not x                 -> "!(" ++ prFormula' x ++ ")"
               Next {}               -> assert False undefined
               And []                -> prFormula' TTrue
               And [x]               -> prFormula' x
-              And (x:xr)            -> concatMap (\_ -> " & ") xr ++
-                                       prFormula' x ++
-                                       concatMap (\y -> prFormula' y) xr
+              And (x:xr)            -> "(" ++ prFormula' x ++ ")" ++ 
+                                       concatMap (\y -> " & (" ++ prFormula' y ++ ")") xr
               Or []                 -> prFormula' FFalse
               Or [x]                -> prFormula' x
-              Or (x:xr)             -> concatMap (\_ -> " | ") xr ++
-                                       prFormula' x ++
-                                       concatMap (\y -> prFormula' y) xr
-              Implies x y           -> " | ! " ++
-                                       prFormula' x ++
-                                       prFormula' y
-              Equiv x y             -> " ! ^ " ++
-                                       prFormula' x ++
-                                       prFormula' y
+              Or (x:xr)             -> "(" ++ prFormula' x ++ ")" ++
+                                       concatMap (\y -> " | (" ++ prFormula' y ++ ")") xr
+              Implies x y           -> "(" ++ prFormula' x ++ ") -> (" ++ prFormula' y ++ ")"
+              Equiv x y             -> "(" ++ prFormula' x ++ ") <-> (" ++ prFormula' y ++ ")"
               _                     -> assert False undefined
 
 
