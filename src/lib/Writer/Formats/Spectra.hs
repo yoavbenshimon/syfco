@@ -51,7 +51,7 @@ writeFormat c s =
 
       (iv,ov) <- signals c s
 
-      return $ "spec " ++ maybe "Translated_Specification" (init . tail . show) (outputFile c) --extracting output name
+      return $ "spec " ++ maybe "Translated_Specification" (takeWhile (/= '.') . tail . show) (outputFile c) --extracting output name
         ++ "\n\n"
         ++ unlines (map (\y -> "env boolean " ++ y ++ ";") iv) --inputs (env)
         ++ "\n"
@@ -59,7 +59,7 @@ writeFormat c s =
         ++ (if null es then "" else
             "\n" ++ unlines (map (\y -> "asm ini " ++ prFormula y ++ ";") es)) --initial env
         ++ (if null ss then "" else
-             "\n" ++ unlines (map (\y -> "sys ini " ++ prFormula y ++ ";") ss)) --initial sys
+             "\n" ++ unlines (map (\y -> "gar ini " ++ prFormula y ++ ";") ss)) --initial sys
         ++ (if null rs then "" else
               "\n" ++ unlines (map (\y -> "asm always " ++ prFormula y ++ ";") rs)) --saftey assumptions (env)
         ++ (if null is then "" else

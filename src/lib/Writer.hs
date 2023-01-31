@@ -69,6 +69,7 @@ import qualified Writer.Formats.Unbeast as Unbeast
 import qualified Writer.Formats.Slugs as Slugs
 import qualified Writer.Formats.SlugsIn as SlugsIn
 import qualified Writer.Formats.Spectra as Spectra
+import qualified Writer.Formats.SpectraSpot as SpectraSpot
 import qualified Writer.Formats.Basic as Basic
 import qualified Writer.Formats.Full as Full
 import qualified Writer.Formats.Psl as Psl
@@ -105,6 +106,7 @@ apply c@Configuration{..} s = do
     SLUGS       -> Slugs.writeFormat c s
     SLUGSIN     -> SlugsIn.writeFormat c s
     SPECTRA     -> Spectra.writeFormat c s
+    SPECTRASPOT -> SpectraSpot.writeFormat c s
     PSL         -> Psl.writeFormat c s
     SMV         -> Smv.writeFormat c s
     SMVDECOMP   -> SmvDecomp.writeFormat c s
