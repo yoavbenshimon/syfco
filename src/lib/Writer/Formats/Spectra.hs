@@ -21,6 +21,7 @@ import Data.Specification
 
 import Detection
 import Control.Exception
+import qualified Data.Char as Char
 
 -----------------------------------------------------------------------------
 
@@ -51,7 +52,7 @@ writeFormat c s =
 
       (iv,ov) <- signals c s
 
-      return $ "spec " ++ maybe "Translated_Specification" (takeWhile (/= '.') . tail . show) (outputFile c) --extracting output name
+      return $ "spec " ++ maybe "Translated_Specification" (capitalized .rmPrefix "tmp/" .takeWhile (/= '.') . tail . show) (outputFile c) --extracting output name
         ++ "\n\n"
         ++ unlines (map (\y -> "env boolean " ++ y ++ ";") iv) --inputs (env)
         ++ "\n"
@@ -106,5 +107,17 @@ writeFormat c s =
               Equiv x y             -> "(" ++ prFormula' x ++ ") <-> (" ++ prFormula' y ++ ")"
               _                     -> assert False undefined
 
+rmPrefix :: [Char] -> [Char] -> [Char]
+rmPrefix [] ys = ys
+rmPrefix _ [] = []
+rmPrefix xs ys =
+  if xs == take n ys
+  then drop n ys
+  else ys
+  where n = length xs
+
+capitalized :: String -> String
+capitalized (head:tail) = Char.toUpper head : tail
+capitalized [] = []
 
 -----------------------------------------------------------------------------
