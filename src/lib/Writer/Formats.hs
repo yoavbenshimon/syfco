@@ -66,7 +66,7 @@ data WriteFormat =
     -- ^ <https://github.com/VerifiableRobotics/slugs/blob/master/doc/input_formats.md#slugsin>
   | SPECTRA
     -- ^ <http://smlab.cs.tau.ac.il/syntech/spectra/index.html>
-  | SPECTRASPOT
+  | SPECTRAINTER
     -- ^ <http://smlab.cs.tau.ac.il/syntech/spectra/index.html>
   | PSL
     -- ^ <https://en.wikipedia.org/wiki/Property_Specification_Language>
@@ -101,7 +101,7 @@ instance Show WriteFormat where
     SLUGS       -> "Slugs"
     SLUGSIN     -> "SlugsIn"
     SPECTRA     -> "Spectra"
-    SPECTRASPOT -> "SpectraSpot"
+    SPECTRAINTER -> "SpectraInter"
     FULL        -> "Full"
     PSL         -> "Psl"
     SMV         -> "SMV"
@@ -127,7 +127,7 @@ instance Convertible WriteFormat String where
     SLUGS       -> "slugs"
     SLUGSIN     -> "slugsin"
     SPECTRA     -> "spectra"
-    SPECTRASPOT -> "spectraspot"
+    SPECTRAINTER -> "spectrainter"
     FULL        -> "full"
     PSL         -> "psl"
     SMV         -> "smv"
@@ -153,7 +153,7 @@ instance Convertible String WriteFormat where
     "slugs"        -> return SLUGS
     "slugsin"      -> return SLUGSIN
     "spectra"      -> return SPECTRA
-    "spectraspot"  -> return SPECTRASPOT
+    "spectrainter"  -> return SPECTRAINTER
     "full"         -> return FULL
     "psl"          -> return PSL
     "smv"          -> return SMV

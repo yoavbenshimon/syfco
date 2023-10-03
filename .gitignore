@@ -20,3 +20,4 @@ syfco_profile
 stack.yaml.lock
 .commit
 .stack-work
+.vscode/

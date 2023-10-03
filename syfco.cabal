@@ -76,7 +76,7 @@ library
     Writer.Formats.AcaciaSpecs
     Writer.Formats.Slugs
     Writer.Formats.Spectra
-    Writer.Formats.SpectraSpot
+    Writer.Formats.SpectraInter
     Writer.Formats.Rabinizer
     Detection
     Detection.GeneralizedReactivity

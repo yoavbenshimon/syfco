@@ -1,16 +1,16 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Writer.Formats.SpectraSpot
+-- Module      :  Writer.Formats.SpectraInter
 -- License     :  MIT (see the LICENSE file)
 -- Maintainer  :  Yoav Ben Shimon (yoavbenshimon@gmail.com)
 --
--- Translates GR(1) specification to Spectra via Spot:
--- Generates an intermidiery format readable by an external script which attempts
--- to covert each assumption\guaranteeto GR(1) in a sound and complete procedure
---
+-- Generate an intermediary format,
+-- readable by an external script which attempts to covert each 
+-- assumption\guarantee to GR(1) in a sound and complete procedure,
+-- yeilding a Spectra file
 -----------------------------------------------------------------------------
 
-module Writer.Formats.SpectraSpot where
+module Writer.Formats.SpectraInter where
 
 -----------------------------------------------------------------------------
 
@@ -22,10 +22,10 @@ import Writer.Error
 import Data.Specification
 import Control.Exception
 import qualified Data.Char as Char
-
+import Data.Maybe
 -----------------------------------------------------------------------------
 
--- | Spectra format writer.
+-- | Spectra intermediary format writer.
 
 writeFormat
   :: Configuration -> Specification -> Either Error String
@@ -35,8 +35,7 @@ writeFormat c s = do
     (iv,ov) <- signals c s
     let asm = es ++ map fGlobally rs ++ as
     let gar = ss ++ map fGlobally is ++ gs
-
-    return $ "spec " ++ maybe "Translated_Specification" (capitalized .rmPrefix "tmp/" .takeWhile (/= '.') . tail . show) (outputFile c) --extracting output name
+    return $ "spec " ++ getSpecName c --extracting input name
       ++ "\n\n"
       ++ unlines (map (\y -> "env boolean " ++ y ++ ";") iv) --inputs (env)
       ++ "\n"
@@ -78,7 +77,7 @@ writeFormat c s = do
             Not x                 -> "!(" ++ prFormula' x ++ ")"
             Implies x y           -> "(" ++ prFormula' x ++ ") -> (" ++ prFormula' y ++ ")"
             Equiv x y             -> "(" ++ prFormula' x ++ ") <-> (" ++ prFormula' y ++ ")"
-            Next x                -> "X(" ++ prFormula' x ++ ")" -- this is written differently to help detect nested next without erroring
+            Next x                -> "X(" ++ prFormula' x ++ ")" -- this is different to detect nested next
             Globally x            -> "G(" ++ prFormula' x ++ ")"
             Finally x             -> "F(" ++ prFormula' x ++ ")"
             Until x y             -> "(" ++ prFormula' x ++ ") U (" ++ prFormula' y ++ ")"
@@ -106,4 +105,9 @@ rmPrefix xs ys =
 capitalized :: String -> String
 capitalized (head:tail) = Char.toUpper head : tail
 capitalized [] = []
+
+getSpecName :: Configuration -> String
+getSpecName c = maybe "Translated_Specification" 
+  (capitalized . reverse .takeWhile (/= '/') . rmPrefix "FSLT." . rmPrefix "fslt.". reverse) 
+  (listToMaybe (inputFiles c)) 
 -----------------------------------------------------------------------------

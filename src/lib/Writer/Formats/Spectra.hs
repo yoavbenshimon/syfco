@@ -22,6 +22,7 @@ import Data.Specification
 import Detection
 import Control.Exception
 import qualified Data.Char as Char
+import Data.Maybe
 
 -----------------------------------------------------------------------------
 
@@ -52,7 +53,7 @@ writeFormat c s =
 
       (iv,ov) <- signals c s
 
-      return $ "spec " ++ maybe "Translated_Specification" (capitalized .rmPrefix "tmp/" .takeWhile (/= '.') . tail . show) (outputFile c) --extracting output name
+      return $ "spec " ++ maybe "Translated_Specification" (capitalized . reverse .takeWhile (/= '/') . rmPrefix "FSLT." . rmPrefix "fslt.". reverse) (listToMaybe (inputFiles c)) --extracting input name
         ++ "\n\n"
         ++ unlines (map (\y -> "env boolean " ++ y ++ ";") iv) --inputs (env)
         ++ "\n"
@@ -119,5 +120,10 @@ rmPrefix xs ys =
 capitalized :: String -> String
 capitalized (head:tail) = Char.toUpper head : tail
 capitalized [] = []
+
+getSpecName :: Configuration -> String
+getSpecName c = maybe "Translated_Specification" 
+  (capitalized . reverse .takeWhile (/= '/') . rmPrefix "FSLT." . rmPrefix "fslt.". reverse) 
+  (listToMaybe (inputFiles c)) 
 
 -----------------------------------------------------------------------------
